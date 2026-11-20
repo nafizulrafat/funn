@@ -1,0 +1,5 @@
+# Netlify config — serves the admin editor at /admin
+[[redirects]]
+  from = "/admin"
+  to = "/index.html"
+  status = 200

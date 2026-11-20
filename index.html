@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creator Type Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one narrow column for the quiz, then a sticky 9:16 card beside a "deal sheet" on wide screens. */
+:root {
+  --ink: #17132B;
+  --ink-2: #221C42;
+  --paper: #FFFAF0;
+  --mute: #B4AED6;
+  --accent: #FFD23F;
+  --line: rgba(255, 250, 240, .16);
+  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ink); color: var(--paper); }
+body { font-family: var(--display); font-weight: 500; font-size: 17px; line-height: 1.45; min-height: 100%; }
+button, input, textarea { font: inherit; color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 80px; }
+.mono { font-family: var(--mono); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; color: var(--mute); }
+h1, h2 { text-wrap: balance; margin: 0; }
+.screen[hidden] { display: none; }
+
+/* Intro */
+.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 36px; }
+h1 { font-weight: 800; font-size: clamp(44px, 10vw, 92px); line-height: .94; letter-spacing: -.035em; max-width: 12ch; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { max-width: 46ch; color: var(--mute); margin: 18px 0 28px; font-size: 19px; }
+.start { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; max-width: 520px; }
+.field { flex: 1 1 220px; display: flex; align-items: center; background: var(--ink-2); border: 2px solid var(--line); border-radius: 16px; padding: 0 16px; }
+.field:focus-within { border-color: var(--accent); }
+.field span { color: var(--mute); font-weight: 800; }
+.field input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; padding: 16px 6px; font-weight: 600; }
+.btn { appearance: none; cursor: pointer; border: 3px solid var(--ink); border-radius: 16px; background: var(--accent); color: var(--ink); font-weight: 800; padding: 14px 22px; box-shadow: 5px 5px 0 var(--paper); transition: transform .12s, box-shadow .12s; }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 7px 7px 0 var(--paper); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--paper); }
+.btn.ghost { background: transparent; color: var(--paper); border-color: var(--line); box-shadow: none; }
+.btn.ghost:hover { border-color: var(--paper); transform: none; box-shadow: none; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.roster { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 48px; max-width: 560px; }
+.tile { border: 3px solid var(--ink); outline: 2px solid var(--line); border-radius: 18px; aspect-ratio: 1; display: grid; place-items: center; }
+.tile svg, .tile img { width: 88%; height: 88%; object-fit: contain; }
+@media (min-width: 700px) { .roster { grid-template-columns: repeat(8, 1fr); max-width: 760px; } }
+
+/* Quiz */
+.quiz { max-width: 620px; margin: 0 auto; }
+.bars { display: flex; gap: 6px; margin-bottom: 14px; }
+.bars i { flex: 1; height: 8px; border-radius: 8px; background: var(--line); }
+.bars i.on { background: var(--accent); }
+.qmeta { display: flex; justify-content: space-between; margin-bottom: 26px; }
+.q { animation: rise .28s ease both; }
+.q h2 { font-weight: 800; font-size: clamp(30px, 7vw, 46px); line-height: 1.02; letter-spacing: -.025em; margin-bottom: 26px; }
+.opts { display: grid; gap: 12px; }
+.opt { display: grid; grid-template-columns: 34px 1fr; align-items: center; text-align: left; cursor: pointer; background: var(--ink-2); border: 2px solid var(--line); border-radius: 18px; padding: 16px 18px; font-weight: 600; font-size: 18px; line-height: 1.25; transition: border-color .12s, transform .12s, background .12s; }
+.opt b { font-family: var(--mono); font-weight: 500; color: var(--accent); }
+.opt:hover { border-color: var(--accent); transform: translateX(3px); }
+.opt.sel { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+.opt.sel b { color: var(--ink); }
+.back { margin-top: 22px; background: none; border: 0; color: var(--mute); cursor: pointer; padding: 6px 0; text-decoration: underline; text-underline-offset: 4px; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Result */
+.result { display: grid; gap: 32px; }
+@media (min-width: 880px) { .result { grid-template-columns: 400px 1fr; gap: 56px; align-items: start; } .cardcol { position: sticky; top: 20px; } }
+.cardcol img { display: block; width: 100%; aspect-ratio: 9 / 16; border-radius: 22px; border: 4px solid var(--ink); box-shadow: 0 0 0 2px var(--line), 12px 12px 0 var(--accent); background: var(--ink-2); }
+.ctrls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.ctrls .btn { padding: 11px 16px; font-size: 15px; }
+.hint { margin: 12px 0 0; color: var(--mute); font-size: 14px; min-height: 1.4em; }
+.ed { margin-top: 18px; display: grid; gap: 8px; }
+.ed .field { background: var(--ink-2); }
+.sheet h2 { font-weight: 800; font-size: clamp(34px, 6vw, 56px); line-height: .96; letter-spacing: -.03em; }
+.sheet .sub { color: var(--accent); font-weight: 600; font-size: 21px; margin: 8px 0 30px; }
+.blk { border-top: 1px solid var(--line); padding: 20px 0; display: grid; gap: 10px; }
+.blk p { margin: 0; max-width: 58ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px solid var(--line); border-radius: 999px; padding: 5px 14px; font-weight: 600; font-size: 15px; }
+.mix { display: grid; gap: 8px; }
+.mrow { display: grid; grid-template-columns: 110px 1fr 44px; gap: 12px; align-items: center; font-size: 15px; }
+.mrow .track { height: 12px; background: var(--line); border-radius: 12px; overflow: hidden; }
+.mrow .fill { height: 100%; background: var(--mute); border-radius: 12px; }
+.mrow.top .fill { background: var(--accent); }
+.mrow .pct { font-family: var(--mono); font-size: 13px; text-align: right; color: var(--mute); }
+textarea { width: 100%; min-height: 96px; resize: vertical; background: var(--ink-2); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; font-size: 15px; }
+canvas { display: none; }
+/* Admin editor */
+.qedit { border: 2px solid var(--line); border-radius: 18px; padding: 16px 16px 6px; margin-bottom: 14px; background: var(--ink-2); }
+.qhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.qedit .rm { background: none; border: 0; color: #FF8FB1; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.qtext { min-height: 0; margin-bottom: 14px; font-weight: 600; font-size: 17px; }
+.oedit { display: grid; grid-template-columns: 26px 1fr; gap: 8px 10px; align-items: center; margin-bottom: 14px; }
+.oedit b { font-family: var(--mono); color: var(--accent); align-self: start; padding-top: 10px; }
+.oedit .otext { grid-column: 2; min-height: 0; margin: 0; font-size: 15px; padding: 10px 12px; border-radius: 10px; }
+.tslots { grid-column: 2; display: flex; gap: 16px; flex-wrap: wrap; }
+.tslots label { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.tsel { background: var(--ink); color: var(--paper); border: 2px solid var(--line); border-radius: 9px; padding: 6px 8px; font-size: 13px; font-weight: 600; }
+.tsel:focus { border-color: var(--accent); outline: none; }
+@media (prefers-reduced-motion: reduce) { .q { animation: none; } * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="screen" id="intro">
+    <div class="top"><span class="mono">Creator type cards · by @icyspicee_</span><span class="mono">8 questions · 1 minute</span></div>
+    <h1>What kind of <em>creator</em> are you?</h1>
+    <p class="lede">Answer eight quick questions. You get a story-sized card with your type, your superpower, your blind spot, and a pitch line for brand deals.</p>
+    <form class="start" id="startForm">
+      <label class="field"><span>@</span><input id="handleIntro" type="text" placeholder="yourhandle" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Your handle"></label>
+      <button class="btn" type="submit">Start the quiz</button>
+    </form>
+    <div class="roster" id="roster" aria-label="The eight creator types"></div>
+  </section>
+
+  <section class="screen" id="admin" hidden>
+    <div class="top"><span class="mono">Admin · edit questions</span><span class="mono">@icyspicee_</span></div>
+    <h2 style="font-weight:800;font-size:clamp(30px,6vw,44px);letter-spacing:-.02em">Edit the quiz</h2>
+    <p class="lede" style="margin:14px 0 24px">Change the wording, swap which type each answer scores, add or drop questions. Saving updates the quiz for everyone signed in to Claude who opens your link.</p>
+    <div id="adminList"></div>
+    <div class="ctrls" style="margin-top:4px">
+      <button class="btn ghost" id="addQ" type="button">+ Add question</button>
+      <button class="btn" id="saveQ" type="button">Save changes</button>
+      <button class="btn ghost" id="resetQ" type="button">Reset to original</button>
+      <button class="btn ghost" id="exportQ" type="button">Copy as JSON</button>
+      <button class="btn ghost" id="adminBack" type="button">Back</button>
+    </div>
+    <p class="hint" id="adminStatus" aria-live="polite"></p>
+  </section>
+
+  <section class="screen quiz" id="quiz" hidden>
+    <div class="bars" id="bars"></div>
+    <div class="qmeta"><span class="mono" id="qnum"></span><span class="mono">Pick the closest one</span></div>
+    <div class="q" id="qbody"></div>
+    <button class="back" id="backBtn" type="button">Back</button>
+  </section>
+
+  <section class="screen" id="result" hidden>
+    <div class="result">
+      <div class="cardcol">
+        <img id="preview" alt="Your creator type card" width="360" height="640">
+        <div class="ctrls">
+          <button class="btn" id="dlBtn" type="button">Download PNG</button>
+          <button class="btn ghost" id="remixBtn" type="button">Remix colors</button>
+          <label class="btn ghost" for="photoIn" style="cursor:pointer">Add photo</label>
+          <input id="photoIn" type="file" accept="image/*" hidden>
+        </div>
+        <p class="hint" id="status" aria-live="polite">Press and hold the card to save it on a phone.</p>
+        <div class="ed"><label class="field"><span>@</span><input id="handleEdit" type="text" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Edit your handle"></label></div>
+      </div>
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </section>
+
+</div>
+<canvas id="cv" width="1080" height="1920"></canvas>
+
+<script>
+const INK = '#17132B', PAPER = '#FFFAF0';
+const PROMO = '@icyspicee_'; // promo watermark stamped on every card
+const KEYS = ['explorer','storyteller','teacher','entertainer','curator','builder','host','authority'];
+
+/* Each type: name, one-liner, superpower, blind spot, brand pitch, brand fits, first move, traits [originality, consistency, warmth, authority], palette [bg, badge, mascot] */
+const TYPES = {
+  explorer:   { name:'Explorer',    tag:'Finds the format before it has a name.', power:'Spotting the next format early.', blind:'Drops a winning idea before it compounds.',
+    pitch:'I build campaigns around formats my audience has not seen yet, so your launch feels new instead of sponsored.',
+    brands:['Product launches','New apps','Gadgets','Experimental food and drink'], move:'Pick one odd format and post it five times before you judge it.',
+    traits:[95,40,55,50], pal:['#3B5BFF','#FFD23F','#7CF0C9'] },
+  storyteller:{ name:'Storyteller', tag:'Makes strangers care in eight seconds.', power:'Turning an ordinary Tuesday into a plot.', blind:'Buries the hook under the backstory.',
+    pitch:'I wrap your product in a real moment from my life, so people remember the scene and then the brand.',
+    brands:['Travel','Lifestyle','Home and food','Banks and insurers'], move:'Rewrite your last post so the payoff lands in the first line.',
+    traits:[70,55,85,50], pal:['#FF5A5F','#FFE8A3','#A58BFF'] },
+  teacher:    { name:'Teacher',     tag:'Explains it so it stays explained.', power:'Making hard things feel easy.', blind:'Gives away the whole course and forgets to sell it.',
+    pitch:'I show your product doing a real job in a tutorial, so viewers leave knowing how to use it.',
+    brands:['Software and tools','Courses','Finance apps','Health and fitness'], move:'Turn your best answer from the comments into a three-step post.',
+    traits:[50,70,65,90], pal:['#0E7C66','#F9E04B','#FFB3C7'] },
+  entertainer:{ name:'Entertainer', tag:'If it is not fun, it does not get posted.', power:'A personality that works in two seconds.', blind:'Trends borrow your face but not your audience.',
+    pitch:'I make people laugh with your product in the frame, so the ad is the thing they send to friends.',
+    brands:['Snacks and drinks','Games','Fashion','Streaming and music'], move:'Make one recurring bit and give it a name people can repeat.',
+    traits:[80,50,75,45], pal:['#FF9F1C','#FF4D8D','#FFF1A8'] },
+  curator:    { name:'Curator',     tag:'Has taste and brings receipts.', power:'Knowing what is worth your time.', blind:'Hides your own voice behind other people\'s picks.',
+    pitch:'My audience trusts my shortlist, so a place on it carries more weight than a paid banner.',
+    brands:['Design and home','Beauty','Books and media','Boutique retail'], move:'Post one pick with a single honest reason you would not buy it.',
+    traits:[60,75,45,80], pal:['#7A3FF2','#F5C6E8','#FFD6A0'] },
+  builder:    { name:'Builder',     tag:'Ships on schedule, improves on purpose.', power:'Consistency that compounds.', blind:'Polishes when you should take a risk.',
+    pitch:'I publish on a fixed rhythm with a repeatable format, so your campaign gets reliable reach week after week.',
+    brands:['Productivity tools','Long-term partnerships','Ecommerce','Education'], move:'Break your own template once this week and note what happens.',
+    traits:[45,95,50,70], pal:['#F4C20D','#3B5BFF','#FF8A5B'] },
+  host:       { name:'Host',        tag:'Your audience is a room, not a number.', power:'Turning followers into regulars.', blind:'Replies to everyone and ships to no one.',
+    pitch:'My community shows up and talks back, so a partnership with me starts a conversation instead of a broadcast.',
+    brands:['Community products','Events','Podcasts','Subscriptions'], move:'Ask one question in your next post and feature the best answer.',
+    traits:[55,65,95,50], pal:['#E8386D','#FFE1A8','#8ED8FF'] },
+  authority:  { name:'Authority',   tag:'Narrow topic, deep trust.', power:'Being the first call for one subject.', blind:'Hesitates to widen past the niche.',
+    pitch:'I am the specialist in my field, so when I recommend something my audience acts on it.',
+    brands:['Professional tools','Premium products','B2B','Financial services'], move:'Publish the opinion you keep giving privately.',
+    traits:[40,80,50,95], pal:['#1F3A5F','#FF7A59','#F4E3B1'] }
+};
+
+/* Question options: [text, primary type (+2), secondary type (+1)] */
+const DEFAULT_Q = [
+  { q:'You get a free Saturday. What do you make?', o:[
+    ['Something I have never made before','explorer','entertainer'],
+    ['A story about what happened this week','storyteller','host'],
+    ['The tutorial I wish existed','teacher','authority'],
+    ['The next post in my series','builder','curator']] },
+  { q:'A post blows up. What is your first move?', o:[
+    ['Reply to as many comments as I can','host','storyteller'],
+    ['Make a follow-up that goes deeper','authority','teacher'],
+    ['Do it again in a completely new way','explorer','entertainer'],
+    ['Work out why it worked and turn it into a system','builder','curator']] },
+  { q:'Your friends describe your content as…', o:[
+    ['Unhinged, in a good way','entertainer','explorer'],
+    ['Weirdly helpful','teacher','authority'],
+    ['So you','storyteller','host'],
+    ['Beautifully put together','curator','builder']] },
+  { q:'A brand offers you a deal for something you have never used.', o:[
+    ['Test it hard and report honestly','authority','curator'],
+    ['Pitch a format they have never tried','explorer','builder'],
+    ['Turn the unboxing into a mini story','storyteller','entertainer'],
+    ['Ask my community if they would use it','host','teacher']] },
+  { q:'Which sounds worst?', o:[
+    ['Posting the same thing every week','explorer','entertainer'],
+    ['Posting with no plan','builder','authority'],
+    ['Posting something I cannot stand behind','curator','teacher'],
+    ['Posting into silence','host','storyteller']] },
+  { q:'Your workspace looks like…', o:[
+    ['Controlled chaos and six half-finished experiments','explorer','entertainer'],
+    ['A calendar, a template and a checklist','builder','authority'],
+    ['Open reference tabs everywhere','teacher','curator'],
+    ['Voice notes and a notebook of moments','storyteller','host']] },
+  { q:'Pick a dream collab.', o:[
+    ['Someone who says yes to a bad idea','explorer','entertainer'],
+    ['An expert who teaches me something','teacher','authority'],
+    ['A friend with a camera and a free weekend','storyteller','host'],
+    ['A brand with real taste','curator','builder']] },
+  { q:'In a year, you want to be known for…', o:[
+    ['Inventing a format other people copy','explorer','entertainer'],
+    ['Being the go-to voice on one topic','authority','teacher'],
+    ['A community that actually shows up','host','storyteller'],
+    ['Never missing a week and always being good','builder','curator']] }
+];
+const clone = x => JSON.parse(JSON.stringify(x));
+let Q = clone(DEFAULT_Q);          // live question set (defaults, or admin's saved set)
+let cfgDoc = null;                 // db handle for the shared question config
+
+/* ---------- Mascots (original SVG creatures) ---------- */
+const S = (w = 10) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+const T = (w = 8) => `${S(w)} fill="none"`;
+const eye = (x, y, r, px = 0, py = 0) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" ${S(6)}/><circle cx="${x + px}" cy="${y + py}" r="${r * .45}" fill="${INK}"/><circle cx="${x + px + r * .18}" cy="${y + py - r * .18}" r="${r * .14}" fill="#fff"/>`;
+const dot = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${INK}"/><circle cx="${x + r * .3}" cy="${y - r * .3}" r="${r * .32}" fill="#fff"/>`;
+const cheek = (x, y) => `<circle cx="${x}" cy="${y}" r="15" fill="#FF8FB1" opacity=".75"/>`;
+
+function mascot(k, body, acc) {
+  let g = '';
+  if (k === 'explorer') {
+    g = `<path d="M200 70 L200 40" ${T()}/><circle cx="200" cy="30" r="16" fill="${acc}" ${S(8)}/>
+      <rect x="140" y="318" width="36" height="50" rx="16" fill="${body}" ${S(8)}/><rect x="224" y="318" width="36" height="50" rx="16" fill="${body}" ${S(8)}/>
+      <path d="M200 70 C290 70 340 130 340 220 C340 310 290 350 200 350 C110 350 60 310 60 220 C60 130 110 70 200 70Z" fill="${body}" ${S()}/>
+      ${eye(200, 200, 52, 10, 6)}<path d="M172 292 Q200 312 228 292" ${T()}/>${cheek(106, 262)}${cheek(294, 262)}`;
+  } else if (k === 'storyteller') {
+    g = `<path d="M120 285 L84 362 L196 305 Z" fill="${body}" ${S()}/>
+      <rect x="58" y="76" width="284" height="236" rx="112" fill="${body}" ${S()}/>
+      <path d="M126 292 L196 300" stroke="${body}" stroke-width="14"/>
+      <path d="M126 196 Q148 166 170 196" ${T()}/><path d="M230 196 Q252 166 274 196" ${T()}/>
+      <path d="M162 236 Q200 292 238 236 Z" fill="${INK}" ${S(6)}/><ellipse cx="200" cy="262" rx="18" ry="10" fill="#FF6B81"/>
+      ${cheek(104, 238)}${cheek(296, 238)}`;
+  } else if (k === 'teacher') {
+    g = `<rect x="70" y="112" width="260" height="240" rx="92" fill="${body}" ${S()}/>
+      <path d="M200 46 L326 96 L200 146 L74 96Z" fill="${INK}" ${S(8)}/>
+      <path d="M136 124 L136 154 Q200 180 264 154 L264 124 L200 146Z" fill="${INK}" ${S(6)}/>
+      <path d="M320 98 L320 150" stroke="${acc}" stroke-width="7" stroke-linecap="round"/><circle cx="320" cy="160" r="10" fill="${acc}" ${S(5)}/>
+      <circle cx="150" cy="222" r="34" fill="#fff" fill-opacity=".7" ${S(7)}/><circle cx="250" cy="222" r="34" fill="#fff" fill-opacity=".7" ${S(7)}/><path d="M184 220 L216 220" ${T(7)}/>
+      ${dot(152, 226, 10)}${dot(248, 226, 10)}<path d="M172 296 Q200 318 228 296" ${T()}/>${cheek(104, 276)}${cheek(296, 276)}`;
+  } else if (k === 'entertainer') {
+    g = `<circle cx="200" cy="236" r="128" fill="${body}" ${S()}/>
+      <path d="M200 38 L258 134 L142 134Z" fill="${acc}" ${S(9)}/><path d="M172 94 L228 94" ${T(7)}/><circle cx="200" cy="36" r="15" fill="#fff" ${S(7)}/>
+      ${eye(152, 214, 22, 3, 2)}<path d="M226 214 Q248 192 272 214" ${T()}/>
+      <path d="M132 262 Q200 352 268 262 Z" fill="${INK}" ${S(8)}/><ellipse cx="200" cy="306" rx="24" ry="14" fill="#FF6B81"/>
+      ${cheek(106, 252)}${cheek(294, 252)}`;
+  } else if (k === 'curator') {
+    g = `<ellipse cx="200" cy="238" rx="108" ry="136" fill="${body}" ${S()}/>
+      <ellipse cx="192" cy="112" rx="98" ry="38" fill="${acc}" ${S(9)} transform="rotate(-8 192 112)"/><circle cx="212" cy="76" r="11" fill="${acc}" ${S(7)}/>
+      ${dot(150, 224, 13)}<circle cx="252" cy="224" r="36" fill="#fff" fill-opacity=".7" ${S(7)}/>${dot(252, 226, 13)}
+      <path d="M279 246 Q304 296 282 340" ${T(5)}/><path d="M166 296 Q196 308 232 288" ${T()}/>${cheek(112, 268)}`;
+  } else if (k === 'builder') {
+    g = `<circle cx="60" cy="252" r="20" fill="${body}" ${S(8)}/><circle cx="340" cy="252" r="20" fill="${body}" ${S(8)}/>
+      <rect x="66" y="112" width="268" height="242" rx="62" fill="${body}" ${S()}/>
+      <path d="M82 132 Q82 54 200 54 Q318 54 318 132Z" fill="${acc}" ${S(9)}/><rect x="60" y="124" width="280" height="28" rx="14" fill="${acc}" ${S(9)}/>
+      <path d="M200 58 L200 124" ${T(8)}/>
+      ${dot(148, 222, 15)}${dot(252, 222, 15)}<path d="M168 286 Q200 306 232 286" ${T()}/>${cheek(104, 268)}${cheek(296, 268)}`;
+  } else if (k === 'host') {
+    g = `<path d="M84 220 Q84 66 200 66 Q316 66 316 220" ${T(16)}/>
+      <ellipse cx="200" cy="244" rx="140" ry="112" fill="${body}" ${S()}/>
+      <rect x="58" y="190" width="48" height="84" rx="20" fill="${acc}" ${S(9)}/><rect x="294" y="190" width="48" height="84" rx="20" fill="${acc}" ${S(9)}/>
+      ${dot(158, 218, 16)}${dot(242, 218, 16)}
+      <path d="M150 262 Q200 336 250 262 Z" fill="${INK}" ${S(8)}/><ellipse cx="200" cy="302" rx="22" ry="12" fill="#FF6B81"/>
+      ${cheek(124, 262)}${cheek(276, 262)}`;
+  } else {
+    g = `<path d="M184 74 Q176 38 194 28" ${T()}/><path d="M210 74 Q212 40 230 34" ${T()}/>
+      <rect x="80" y="70" width="240" height="282" rx="100" fill="${body}" ${S()}/>
+      <path d="M116 168 L178 182" ${T(11)}/><path d="M284 168 L222 182" ${T(11)}/>
+      <rect x="110" y="196" width="82" height="58" rx="16" fill="#fff" fill-opacity=".7" ${S(7)}/><rect x="208" y="196" width="82" height="58" rx="16" fill="#fff" fill-opacity=".7" ${S(7)}/><path d="M192 218 L208 218" ${T(7)}/>
+      ${dot(152, 226, 10)}${dot(248, 226, 10)}<path d="M170 296 L230 296" ${T()}/>
+      <path d="M200 336 L162 318 L162 352Z" fill="${acc}" ${S(7)}/><path d="M200 336 L238 318 L238 352Z" fill="${acc}" ${S(7)}/><circle cx="200" cy="336" r="9" fill="${acc}" ${S(6)}/>`;
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">${g}</svg>`;
+}
+
+/* ---------- State ---------- */
+const state = { handle: '', i: 0, answers: [], res: null, remix: 0, photo: null };
+const $ = id => document.getElementById(id);
+const cleanHandle = v => v.replace(/^@+/, '').replace(/[^\w.]/g, '').slice(0, 24);
+
+function show(id) { ['intro', 'quiz', 'result', 'admin'].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
+
+/* Intro roster */
+$('roster').innerHTML = KEYS.map(k => {
+  const p = TYPES[k].pal;
+  return `<div class="tile" title="${TYPES[k].name}" style="background:${p[0]}"><img src="assets/${k}.png" alt="${TYPES[k].name}"></div>`;
+}).join('');
+
+$('startForm').addEventListener('submit', e => {
+  e.preventDefault();
+  state.handle = cleanHandle($('handleIntro').value);
+  state.i = 0; state.answers = []; state.res = null; state.remix = 0;
+  show('quiz'); renderQ();
+});
+
+/* ---------- Quiz ---------- */
+function renderQ() {
+  const q = Q[state.i];
+  $('bars').innerHTML = Q.map((_, n) => `<i class="${n <= state.i ? 'on' : ''}"></i>`).join('');
+  $('qnum').textContent = `Question ${String(state.i + 1).padStart(2, '0')} of ${String(Q.length).padStart(2, '0')}`;
+  $('qbody').innerHTML = `<h2>${q.q}</h2><div class="opts">${q.o.map((o, n) =>
+    `<button type="button" class="opt${state.answers[state.i] === n ? ' sel' : ''}" data-n="${n}"><b>${'ABCD'[n]}</b><span>${o[0]}</span></button>`).join('')}</div>`;
+  $('qbody').classList.remove('q'); void $('qbody').offsetWidth; $('qbody').classList.add('q');
+  $('backBtn').style.visibility = state.i === 0 ? 'hidden' : 'visible';
+}
+function pick(n) {
+  state.answers[state.i] = n;
+  document.querySelectorAll('.opt').forEach((b, k) => b.classList.toggle('sel', k === n));
+  setTimeout(() => {
+    if (state.i < Q.length - 1) { state.i++; renderQ(); } else finish();
+  }, 220);
+}
+$('qbody').addEventListener('click', e => { const b = e.target.closest('.opt'); if (b) pick(+b.dataset.n); });
+$('backBtn').addEventListener('click', () => { if (state.i > 0) { state.i--; renderQ(); } });
+document.addEventListener('keydown', e => {
+  if ($('quiz').hidden || e.metaKey || e.ctrlKey) return;
+  const n = '1234'.indexOf(e.key);
+  if (n > -1) pick(n);
+});
+
+/* ---------- Scoring ---------- */
+function compute() {
+  const pts = {}, prim = {};
+  KEYS.forEach(k => { pts[k] = 0; prim[k] = 0; });
+  state.answers.forEach((a, i) => { const o = Q[i].o[a]; pts[o[1]] += 2; prim[o[1]]++; pts[o[2]] += 1; });
+  const total = Object.values(pts).reduce((a, b) => a + b, 0);
+  const rank = [...KEYS].sort((a, b) => pts[b] - pts[a] || prim[b] - prim[a] || KEYS.indexOf(a) - KEYS.indexOf(b));
+  const [a, b] = rank;
+  const pa = Math.round(pts[a] / (pts[a] + pts[b]) * 100);
+  const traits = TYPES[a].traits.map((v, n) => Math.round(v * .75 + TYPES[b].traits[n] * .25));
+  const mix = KEYS.map(k => [k, Math.round(pts[k] / total * 100)]).sort((x, y) => y[1] - x[1]);
+  return { top: a, second: b, pa, pb: 100 - pa, traits, mix };
+}
+
+function finish() {
+  state.res = compute();
+  $('handleEdit').value = state.handle;
+  show('result');
+  buildSheet();
+  document.documentElement.style.setProperty('--accent', TYPES[state.res.top].pal[1]);
+  redraw();
+}
+
+function handleText() { return '@' + (state.handle || 'yourhandle'); }
+
+function buildSheet() {
+  const r = state.res, t = TYPES[r.top], s = TYPES[r.second];
+  const idx = KEYS.indexOf(r.top) + 1;
+  $('sheet').innerHTML = `
+    <span class="mono">Type ${String(idx).padStart(2, '0')} of 08</span>
+    <h2>The ${t.name}</h2>
+    <div class="sub">${r.pa}% ${t.name}, ${r.pb}% ${s.name}</div>
+    <div class="blk"><span class="mono">Superpower</span><p>${t.power}</p></div>
+    <div class="blk"><span class="mono">Blind spot</span><p>${t.blind}</p></div>
+    <div class="blk"><span class="mono">Your first move this week</span><p>${t.move}</p></div>
+    <div class="blk"><span class="mono">Brands that fit</span><div class="chips">${t.brands.map(b => `<span class="chip">${b}</span>`).join('')}</div></div>
+    <div class="blk"><span class="mono">Pitch line for brand deals</span><p id="pitchP"></p>
+      <textarea id="caption" readonly aria-label="Caption you can copy"></textarea>
+      <div><button class="btn ghost" id="copyBtn" type="button" style="padding:10px 16px;font-size:15px">Copy caption</button></div></div>
+    <div class="blk"><span class="mono">Your full mix</span><div class="mix">${r.mix.map(([k, p], n) =>
+      `<div class="mrow${n === 0 ? ' top' : ''}"><span>${TYPES[k].name}</span><span class="track"><span class="fill" style="display:block;width:${p * 2.6}%"></span></span><span class="pct">${p}%</span></div>`).join('')}</div></div>`;
+  fillText();
+  $('copyBtn').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('caption').value); say('Caption copied.'); }
+    catch (e) { $('caption').select(); say('Select the caption and copy it.'); }
+  });
+}
+function fillText() {
+  const t = TYPES[state.res.top];
+  $('pitchP').textContent = `Hi, I am ${handleText()}, a ${t.name.toLowerCase()} creator. ${t.pitch}`;
+  $('caption').value = `I'm The ${t.name}. ${t.tag} Superpower: ${t.power} Blind spot: ${t.blind} What are you? Find your type via ${PROMO} #creatortype`;
+}
+
+/* ---------- Card rendering (1080 x 1920) ---------- */
+const W = 1080, H = 1920;
+const imgCache = {};
+function loadSVG(svg) {
+  if (!imgCache[svg]) imgCache[svg] = new Promise((res, rej) => {
+    const im = new Image(); im.onload = () => res(im); im.onerror = rej;
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+  return imgCache[svg];
+}
+function loadImg(src) {
+  if (!imgCache[src]) imgCache[src] = new Promise((res, rej) => {
+    const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src;
+  });
+  return imgCache[src];
+}
+function isLight(hex) { const n = parseInt(hex.slice(1), 16); const l = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; return l > .6; }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function fit(c, text, weight, max, min, maxW) { let s = max; for (; s > min; s -= 2) { c.font = `${weight} ${s}px "Bricolage Grotesque", Arial, sans-serif`; if (c.measureText(text).width <= maxW) break; } return s; }
+function wrap(c, text, maxW) { const out = []; let line = ''; text.split(' ').forEach(w => { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }); if (line) out.push(line); return out; }
+function ls(c, v) { if ('letterSpacing' in c) c.letterSpacing = v; }
+
+async function fontsReady() {
+  try { await Promise.all([document.fonts.load('800 100px "Bricolage Grotesque"'), document.fonts.load('600 40px "Bricolage Grotesque"'), document.fonts.load('500 30px "DM Mono"')]); } catch (e) {}
+}
+
+async function drawCard() {
+  const r = state.res, t = TYPES[r.top], s = TYPES[r.second];
+  const base = t.pal, rot = state.remix % 3;
+  const [bg, badge, body] = [base[rot % 3], base[(rot + 1) % 3], base[(rot + 2) % 3]];
+  const fg = isLight(bg) ? INK : PAPER;
+  const cv = $('cv'), c = cv.getContext('2d');
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+
+  // halftone field
+  c.fillStyle = isLight(bg) ? 'rgba(23,19,43,.10)' : 'rgba(255,250,240,.12)';
+  for (let y = 24, row = 0; y < 1100; y += 44, row++) for (let x = (row % 2) * 22 + 10; x < W; x += 44) {
+    const rad = Math.max(0, 16 - y / 70); if (rad > .5) { c.beginPath(); c.arc(x, y, rad, 0, 7); c.fill(); }
+  }
+
+  // top row
+  c.fillStyle = fg; c.textBaseline = 'alphabetic';
+  c.font = '500 30px "DM Mono", monospace'; ls(c, '6px');
+  c.textAlign = 'left'; c.fillText('CREATOR TYPE', 72, 214);
+  c.textAlign = 'right'; c.fillText(`NO. ${String(KEYS.indexOf(r.top) + 1).padStart(2, '0')} / 08`, W - 72, 214); ls(c, '0px');
+  c.fillStyle = fg; c.globalAlpha = .35; c.fillRect(72, 236, W - 144, 3); c.globalAlpha = 1;
+
+  // handle pill
+  const hText = handleText();
+  c.font = '800 40px "Bricolage Grotesque", Arial, sans-serif';
+  const hw = Math.min(c.measureText(hText).width, 600), pw = hw + 130, ph = 96, px = (W - pw) / 2, py = 268;
+  c.fillStyle = INK; rr(c, px + 8, py + 8, pw, ph, 48); c.fill();
+  c.fillStyle = PAPER; rr(c, px, py, pw, ph, 48); c.fill(); c.lineWidth = 6; c.strokeStyle = INK; c.stroke();
+  const ax = px + 56, ay = py + ph / 2;
+  c.save(); c.beginPath(); c.arc(ax, ay, 34, 0, 7); c.clip();
+  if (state.photo) {
+    const im = state.photo, m = Math.min(im.width, im.height);
+    c.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, ax - 34, ay - 34, 68, 68);
+  } else {
+    c.fillStyle = body; c.fillRect(ax - 34, ay - 34, 68, 68);
+    c.fillStyle = INK; c.textAlign = 'center'; c.font = '800 38px "Bricolage Grotesque", Arial, sans-serif';
+    c.fillText((state.handle[0] || 'Y').toUpperCase(), ax, ay + 13);
+  }
+  c.restore(); c.lineWidth = 5; c.strokeStyle = INK; c.beginPath(); c.arc(ax, ay, 34, 0, 7); c.stroke();
+  c.fillStyle = INK; c.textAlign = 'left'; c.font = '800 40px "Bricolage Grotesque", Arial, sans-serif';
+  c.fillText(hText, px + 106, py + 62, 600);
+
+  // badge + mascot
+  const cx = W / 2, cy = 720, R = 290, n = 16;
+  const burst = (dx, dy) => { c.beginPath(); for (let i = 0; i < n * 2; i++) { const rad = i % 2 ? R * .9 : R, a = Math.PI * i / n - Math.PI / 2; const x = cx + dx + Math.cos(a) * rad, y = cy + dy + Math.sin(a) * rad; i ? c.lineTo(x, y) : c.moveTo(x, y); } c.closePath(); };
+  c.lineJoin = 'round';
+  c.fillStyle = INK; burst(14, 14); c.fill();
+  c.fillStyle = badge; burst(0, 0); c.fill(); c.lineWidth = 10; c.strokeStyle = INK; c.stroke();
+  c.fillStyle = PAPER; c.beginPath(); c.arc(cx, cy, R * .8, 0, 7); c.fill(); c.lineWidth = 8; c.stroke();
+  try { const im = await loadImg(`assets/${r.top}.png`); c.drawImage(im, cx - 214, cy - 220, 428, 428); } catch (e) {}
+
+  // title block
+  c.fillStyle = fg; c.textAlign = 'center';
+  c.font = '500 34px "DM Mono", monospace'; ls(c, '8px'); c.fillText('I AM THE', cx, 1070); ls(c, '0px');
+  const name = t.name.toUpperCase(); const fs = fit(c, name, 800, 200, 80, 920);
+  c.fillText(name, cx, 1070 + fs * .86);
+  const ty = 1070 + fs * .86 + 62;
+  c.font = '600 40px "Bricolage Grotesque", Arial, sans-serif'; const tfs = fit(c, t.tag, 600, 42, 26, 900);
+  c.fillText(t.tag, cx, ty);
+
+  // panel
+  const panelY = ty + 44, panelH = 1700 - panelY - 20, pX = 72, pW = W - 144;
+  c.fillStyle = INK; rr(c, pX + 14, panelY + 14, pW, panelH, 30); c.fill();
+  c.fillStyle = PAPER; rr(c, pX, panelY, pW, panelH, 30); c.fill(); c.lineWidth = 7; c.strokeStyle = INK; c.stroke();
+  // chip
+  c.font = '500 24px "DM Mono", monospace'; ls(c, '4px');
+  const chip = 'SUPERPOWER', chw = c.measureText(chip).width + 44;
+  c.fillStyle = badge; rr(c, pX + 40, panelY + 32, chw, 48, 24); c.fill(); c.lineWidth = 4; c.strokeStyle = INK; c.stroke();
+  c.fillStyle = INK; c.textAlign = 'left'; c.fillText(chip, pX + 62, panelY + 65); ls(c, '0px');
+  c.font = '800 42px "Bricolage Grotesque", Arial, sans-serif';
+  const lines = wrap(c, t.power, pW - 80).slice(0, 2);
+  lines.forEach((l, i) => c.fillText(l, pX + 40, panelY + 138 + i * 50));
+  // traits
+  const labels = ['ORIGINALITY', 'CONSISTENCY', 'WARMTH', 'AUTHORITY'];
+  const gy = panelY + 138 + (lines.length - 1) * 50 + 52, colW = (pW - 80 - 3 * 24) / 4;
+  labels.forEach((lb, i) => {
+    const x = pX + 40 + i * (colW + 24);
+    c.font = '500 19px "DM Mono", monospace'; ls(c, '1px'); c.fillStyle = INK; c.textAlign = 'left'; c.fillText(lb, x, gy); ls(c, '0px');
+    c.fillStyle = 'rgba(23,19,43,.14)'; rr(c, x, gy + 14, colW, 20, 10); c.fill();
+    c.fillStyle = bg; rr(c, x, gy + 14, Math.max(24, colW * r.traits[i] / 100), 20, 10); c.fill(); c.lineWidth = 4; c.strokeStyle = INK; c.stroke();
+  });
+  // blend
+  c.fillStyle = INK; c.font = '500 24px "DM Mono", monospace'; ls(c, '1px'); c.textAlign = 'left';
+  c.fillText(`${r.pa}% ${t.name} + ${r.pb}% ${s.name}`.toUpperCase(), pX + 40, gy + 82); ls(c, '0px');
+
+  // blind-spot line
+  c.fillStyle = fg; c.textAlign = 'center'; c.font = '600 28px "Bricolage Grotesque", Arial, sans-serif';
+  c.fillText(`Watch out for: ${t.blind}`, cx, 1758, 920);
+
+  // promo watermark stamp
+  c.save();
+  c.translate(cx, 1850); c.rotate(-0.03);
+  c.font = '800 42px "Bricolage Grotesque", Arial, sans-serif';
+  const ww = c.measureText(PROMO).width, wmW = ww + 76, wmH = 80;
+  c.fillStyle = INK; rr(c, -wmW / 2 + 7, -wmH / 2 + 7, wmW, wmH, 22); c.fill();
+  c.fillStyle = badge; rr(c, -wmW / 2, -wmH / 2, wmW, wmH, 22); c.fill();
+  c.lineWidth = 5; c.strokeStyle = INK; c.stroke();
+  c.fillStyle = INK; c.textBaseline = 'middle'; c.fillText(PROMO, 0, 3);
+  c.restore(); c.textBaseline = 'alphabetic';
+  return cv;
+}
+
+let drawing = false, again = false;
+async function redraw() {
+  if (drawing) { again = true; return; }
+  drawing = true;
+  try {
+    await fontsReady();
+    const cv = await drawCard();
+    $('preview').src = cv.toDataURL('image/png');
+  } catch (e) { say('Could not draw the card. Try again.'); }
+  drawing = false;
+  if (again) { again = false; redraw(); }
+}
+
+/* ---------- Controls ---------- */
+let sayT;
+function say(m) { $('status').textContent = m; clearTimeout(sayT); sayT = setTimeout(() => { $('status').textContent = 'Press and hold the card to save it on a phone.'; }, 4000); }
+
+let hT;
+$('handleEdit').addEventListener('input', e => {
+  state.handle = cleanHandle(e.target.value);
+  clearTimeout(hT); hT = setTimeout(() => { fillText(); redraw(); }, 160);
+});
+$('remixBtn').addEventListener('click', () => { state.remix++; redraw(); });
+$('photoIn').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => { const im = new Image(); im.onload = () => { state.photo = im; redraw(); }; im.src = fr.result; };
+  fr.readAsDataURL(f);
+});
+
+let dl = null;
+(async () => { try { dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { dl = null; } })();
+$('dlBtn').addEventListener('click', async () => {
+  if (!state.res) return;
+  try {
+    await fontsReady(); const cv = await drawCard();
+    const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    const name = `creator-type-${state.res.top}.png`;
+    if (dl) { await dl.save({ filename: name, data: blob }); say('Saved.'); }
+    else {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000); say('Downloaded.');
+    }
+  } catch (e) { say(e && e.code === 'declined' ? 'Download cancelled.' : 'Could not download. Press and hold the card instead.'); }
+});
+
+/* ---------- Admin: edit questions ---------- */
+function sanitizeQ(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.filter(x => x && typeof x.q === 'string' && Array.isArray(x.o))
+    .map(x => ({
+      q: String(x.q).slice(0, 160),
+      o: x.o.slice(0, 4).map(o => [
+        String((o && o[0]) || '').slice(0, 120),
+        KEYS.includes(o && o[1]) ? o[1] : KEYS[0],
+        KEYS.includes(o && o[2]) ? o[2] : KEYS[1]
+      ])
+    }))
+    .filter(x => x.o.length === 4);
+}
+function typeSelect() { return `<select class="tsel">${KEYS.map(k => `<option value="${k}">${TYPES[k].name}</option>`).join('')}</select>`; }
+function renderAdmin() {
+  $('adminList').innerHTML = Q.map((q, qi) => `
+    <div class="qedit" data-qi="${qi}">
+      <div class="qhead"><span class="mono">Question ${qi + 1}</span><button class="rm" type="button" data-rm="${qi}">Remove</button></div>
+      <textarea class="qtext" rows="2" aria-label="Question ${qi + 1} text"></textarea>
+      ${q.o.map((o, oi) => `
+        <div class="oedit">
+          <b>${'ABCD'[oi]}</b>
+          <textarea class="otext" rows="1" aria-label="Option ${'ABCD'[oi]} text"></textarea>
+          <div class="tslots">
+            <label>Scores +2 <span class="prim">${typeSelect()}</span></label>
+            <label>+1 <span class="sec">${typeSelect()}</span></label>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+  Q.forEach((q, qi) => {
+    const node = $('adminList').querySelector(`[data-qi="${qi}"]`);
+    node.querySelector('.qtext').value = q.q;
+    const oes = node.querySelectorAll('.oedit');
+    q.o.forEach((o, oi) => {
+      oes[oi].querySelector('.otext').value = o[0];
+      oes[oi].querySelector('.prim select').value = o[1];
+      oes[oi].querySelector('.sec select').value = o[2];
+    });
+  });
+}
+function readAdmin() {
+  const out = [];
+  $('adminList').querySelectorAll('.qedit').forEach(node => {
+    const opts = [];
+    node.querySelectorAll('.oedit').forEach(oe => opts.push([
+      oe.querySelector('.otext').value.trim(),
+      oe.querySelector('.prim select').value,
+      oe.querySelector('.sec select').value
+    ]));
+    out.push({ q: node.querySelector('.qtext').value.trim(), o: opts });
+  });
+  return out;
+}
+let aT;
+function adminSay(m) { $('adminStatus').textContent = m; clearTimeout(aT); aT = setTimeout(() => { $('adminStatus').textContent = ''; }, 5000); }
+const STATIC = !(window.claude && window.claude.use);   // true on Vercel / any plain web host
+const ADMIN_CODE = 'icyspicee';                         // admin passcode (static hosting only)
+let IS_OWNER = false;
+function wantsAdmin() { return location.hash === '#admin' || /\/admin\/?$/.test(location.pathname); }
+function adminAllowed() { return STATIC ? localStorage.getItem('ct_admin_ok') === '1' : IS_OWNER; }
+function routeHash() {
+  if (!wantsAdmin()) return;
+  if (adminAllowed()) { show('admin'); renderAdmin(); return; }
+  if (STATIC) {
+    const code = window.prompt('Enter admin passcode:');
+    if (code === ADMIN_CODE) { try { localStorage.setItem('ct_admin_ok', '1'); } catch (e) {} show('admin'); renderAdmin(); }
+    else { window.location.href = './'; }
+  } else { if (location.hash) location.hash = ''; show('intro'); }   // non-owners never reach the editor
+}
+window.addEventListener('hashchange', routeHash);
+$('adminBack').addEventListener('click', () => {
+  if (STATIC) { window.location.href = './'; return; }
+  if (location.hash) location.hash = ''; show('intro');
+});
+$('addQ').addEventListener('click', () => {
+  Q = readAdmin();
+  Q.push({ q: 'New question', o: [['Option A', KEYS[0], KEYS[1]], ['Option B', KEYS[2], KEYS[3]], ['Option C', KEYS[4], KEYS[5]], ['Option D', KEYS[6], KEYS[7]]] });
+  renderAdmin();
+  window.scrollTo(0, document.body.scrollHeight);
+});
+$('resetQ').addEventListener('click', () => { Q = clone(DEFAULT_Q); renderAdmin(); adminSay('Reset to the original questions — press Save to apply.'); });
+$('exportQ').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(JSON.stringify(readAdmin(), null, 2)); adminSay('Questions copied as JSON.'); }
+  catch (e) { adminSay('Could not copy here.'); }
+});
+$('adminList').addEventListener('click', e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return;
+  const cur = readAdmin();
+  if (cur.length <= 1) { adminSay('Keep at least one question.'); return; }
+  cur.splice(+b.dataset.rm, 1); Q = cur; renderAdmin();
+});
+$('saveQ').addEventListener('click', async () => {
+  const next = sanitizeQ(readAdmin());
+  if (next.length < 1) { adminSay('Add at least one question with four options.'); return; }
+  Q = next;
+  if (cfgDoc) {
+    try { await cfgDoc.set({ questions: Q, v: Date.now() }); adminSay('Saved. Everyone signed in who opens your link now gets these questions.'); }
+    catch (e) { adminSay('Saved on this device, but the shared copy could not be updated (you may not have edit rights).'); }
+  } else if (STATIC) {
+    try { localStorage.setItem('ct_config', JSON.stringify({ questions: Q, v: Date.now() })); adminSay('Saved to this browser (live preview). To push to all visitors, use Copy as JSON and redeploy.'); }
+    catch (e) { adminSay('Could not save on this device.'); }
+  } else {
+    adminSay('Saved for this session only — the shared copy needs you to be signed in as the owner.');
+  }
+});
+
+/* ---------- Backend: owner check + load shared questions ---------- */
+(async () => {
+  let user = null, db = null;
+  try { user = (window.claude && window.claude.use) ? await window.claude.use('user') : null; } catch (e) {}
+  try { db = (window.claude && window.claude.use) ? await window.claude.use('db') : null; } catch (e) {}
+  IS_OWNER = !!(user && user.isOwner && user.isOwner());
+  if (db) {
+    try {
+      cfgDoc = db.doc('config/quiz');
+      const snap = await cfgDoc.get();
+      const d = snap && (typeof snap.data === 'function' ? snap.data() : snap.data);
+      const loaded = sanitizeQ(d && d.questions);
+      if (loaded.length) Q = loaded;
+    } catch (e) {}
+  } else if (STATIC) {
+    try { const raw = localStorage.getItem('ct_config'); const loaded = sanitizeQ(raw && JSON.parse(raw).questions); if (loaded.length) Q = loaded; } catch (e) {}
+  }
+  routeHash();   // resolve admin access now
+})();
+
+/* Retake link inside the sheet header area */
+const retake = document.createElement('button');
+retake.type = 'button'; retake.className = 'btn ghost'; retake.textContent = 'Retake the quiz'; retake.style.cssText = 'padding:11px 16px;font-size:15px';
+$('remixBtn').parentNode.appendChild(retake);
+retake.addEventListener('click', () => { document.documentElement.style.setProperty('--accent', '#FFD23F'); show('intro'); });
+</script>
+</body>
+</html>
